@@ -1,11 +1,12 @@
 ﻿/* 
 
-jTable 2.4.0
+jTable 2.4.1
 http://www.jtable.org
 
 ---------------------------------------------------------------------------
 
 Copyright (C) 2011-2014 by Halil İbrahim Kalkan (http://www.halilibrahimkalkan.com)
+Modified by Diomedes Ignacio Domínguez Ureña
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

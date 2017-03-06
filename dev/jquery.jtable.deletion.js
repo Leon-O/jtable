@@ -1,432 +1,436 @@
-/************************************************************************
+﻿/************************************************************************
 * DELETION extension for jTable                                         *
 *************************************************************************/
 (function ($) {
 
-    //Reference to base object members
-    var base = {
-        _create: $.hik.jtable.prototype._create,
-        _addColumnsToHeaderRow: $.hik.jtable.prototype._addColumnsToHeaderRow,
-        _addCellsToRowUsingRecord: $.hik.jtable.prototype._addCellsToRowUsingRecord
-    };
+	 //Reference to base object members
+	 var base = {
+	 	 _create: $.hik.jtable.prototype._create,
+	 	 _addColumnsToHeaderRow: $.hik.jtable.prototype._addColumnsToHeaderRow,
+	 	 _addCellsToRowUsingRecord: $.hik.jtable.prototype._addCellsToRowUsingRecord,
+	 	 _formatModalWindow: $.hik.jtable.prototype._formatModalWindow
+	 };
 
-    //extension members
-    $.extend(true, $.hik.jtable.prototype, {
+	 //extension members
+	 $.extend(true, $.hik.jtable.prototype, {
 
-        /************************************************************************
-        * DEFAULT OPTIONS / EVENTS                                              *
-        *************************************************************************/
-        options: {
+	 	 /************************************************************************
+		 * DEFAULT OPTIONS / EVENTS                                              *
+		 *************************************************************************/
+	 	 options: {
 
-            //Options
-            deleteConfirmation: true,
+	 	 	 //Options
+	 	 	 deleteConfirmation: true,
 
-            //Events
-            recordDeleted: function (event, data) { },
+	 	 	 //Events
+	 	 	 recordDeleted: function (event, data) { },
 
-            //Localization
-            messages: {
-                deleteConfirmation: 'This record will be deleted. Are you sure?',
-                deleteText: 'Delete',
-                deleting: 'Deleting',
-                canNotDeletedRecords: 'Can not delete {0} of {1} records!',
-                deleteProggress: 'Deleting {0} of {1} records, processing...'
-            }
-        },
+	 	 	 //Localization
+	 	 	 messages: {
+	 	 	 	 deleteConfirmation: 'This record will be deleted. Are you sure?',
+	 	 	 	 deleteText: 'Delete',
+	 	 	 	 deleting: 'Deleting',
+	 	 	 	 canNotDeletedRecords: 'Can not delete {0} of {1} records!',
+	 	 	 	 deleteProggress: 'Deleting {0} of {1} records, processing...'
+	 	 	 }
+	 	 },
 
-        /************************************************************************
-        * PRIVATE FIELDS                                                        *
-        *************************************************************************/
+	 	 /************************************************************************
+		 * PRIVATE FIELDS                                                        *
+		 *************************************************************************/
 
-        _$deleteRecordDiv: null, //Reference to the adding new record dialog div (jQuery object)
-        _$deletingRow: null, //Reference to currently deleting row (jQuery object)
+	 	 _$deleteRecordDiv: null, //Reference to the adding new record dialog div (jQuery object)
+	 	 _$deletingRow: null, //Reference to currently deleting row (jQuery object)
 
-        /************************************************************************
-        * CONSTRUCTOR                                                           *
-        *************************************************************************/
+	 	 /************************************************************************
+		 * CONSTRUCTOR                                                           *
+		 *************************************************************************/
 
-        /* Overrides base method to do deletion-specific constructions.
-        *************************************************************************/
-        _create: function () {
-            base._create.apply(this, arguments);
-            this._createDeleteDialogDiv();
-        },
+	 	 /* Overrides base method to do deletion-specific constructions.
+		 *************************************************************************/
+	 	 _create: function () {
+	 	 	 base._create.apply(this, arguments);
 
-        /* Creates and prepares delete record confirmation dialog div.
-        *************************************************************************/
-        _createDeleteDialogDiv: function () {
-            var self = this;
+	 	 	 //Check if deleteAction is supplied
+	 	 	 if (!this.options.actions.deleteAction) {
+	 	 	 	 return;
+	 	 	 }
 
-            //Check if deleteAction is supplied
-            if (!self.options.actions.deleteAction) {
-                return;
-            }
+	 	 	 this._createDeleteDialogDiv();
+	 	 },
 
-            //Create div element for delete confirmation dialog
-            self._$deleteRecordDiv = $('<div><p><span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span><span class="jtable-delete-confirm-message"></span></p></div>').appendTo(self._$mainContainer);
+	 	 /* Creates and prepares delete record confirmation dialog div.
+		 *************************************************************************/
+	 	 _createDeleteDialogDiv: function () {
+	 	 	 var self = this;
 
-            //Prepare dialog
-            self._$deleteRecordDiv.dialog({
-                autoOpen: false,
-                show: self.options.dialogShowEffect,
-                hide: self.options.dialogHideEffect,
-                modal: true,
-                title: self.options.messages.areYouSure,
-                buttons:
-                        [{  //cancel button
-                            text: self.options.messages.cancel,
-                            click: function () {
-                                self._$deleteRecordDiv.dialog("close");
-                            }
-                        }, {//delete button
-                            id: 'DeleteDialogButton',
-                            text: self.options.messages.deleteText,
-                            click: function () {
+	 	 	 //Create div element for delete confirmation dialog
+	 	 	 self._$deleteRecordDiv = $("<div />").appendTo(self._$mainContainer);
+	 	 	 self._$deleteRecordDiv.addClass("modal fade");
+	 	 	 self._$deleteRecordDiv.append("<div class=\"modal-dialog modal-sm\">" +
+					 "<div class=\"modal-content\">" +
+					 "<div class=\"modal-header\">" +
+					 "<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>" +
+					 "<h4>" + self.options.messages.areYouSure + "</h4></div>" +
+					 "<div class=\"modal-body\"></div>" +
+					 "<div class=\"modal-footer\">" +
+					 "<button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">" + self.options.messages.cancel + "</button>" +
+					 "<button type=\"button\" id=\"DeleteDialogButton\" class=\"btn btn-danger\">" + self.options.messages.deleteText + "</button></div>");
 
-                                //row maybe removed by another source, if so, do nothing
-                                if (self._$deletingRow.hasClass('jtable-row-removed')) {
-                                    self._$deleteRecordDiv.dialog('close');
-                                    return;
-                                }
+	 	 	 self._formatModalWindow(self._$deleteRecordDiv);
 
-                                var $deleteButton = self._$deleteRecordDiv.parent().find('#DeleteDialogButton');
-                                self._setEnabledOfDialogButton($deleteButton, false, self.options.messages.deleting);
-                                self._deleteRecordFromServer(
-                                    self._$deletingRow,
-                                    function () {
-                                        self._removeRowsFromTableWithAnimation(self._$deletingRow);
-                                        self._$deleteRecordDiv.dialog('close');
-                                    },
-                                    function (message) { //error
-                                        self._showError(message);
-                                        self._setEnabledOfDialogButton($deleteButton, true, self.options.messages.deleteText);
-                                    }
-                                );
-                            }
-                        }],
-                close: function () {
-                    var $deleteButton = self._$deleteRecordDiv.parent().find('#DeleteDialogButton');
-                    self._setEnabledOfDialogButton($deleteButton, true, self.options.messages.deleteText);
-                }
-            });
-        },
+	 	 	 self._$deleteRecordDiv.find("#DeleteDialogButton").click(function (event) {
 
-        /************************************************************************
-        * PUBLIC METHODS                                                        *
-        *************************************************************************/
+	 	 	 	 //row maybe removed by another source, if so, do nothing
+	 	 	 	 if (self._$deletingRow.hasClass("jtable-row-removed")) {
+	 	 	 	 	 self._$deleteRecordDiv.dialog("close");
+	 	 	 	 	 return;
+	 	 	 	 }
 
-        /* This method is used to delete one or more rows from server and the table.
-        *************************************************************************/
-        deleteRows: function ($rows) {
-            var self = this;
+	 	 	 	 var $deleteButton = $(this);
+	 	 	 	 self._setEnabledOfDialogButton($deleteButton, false, self.options.messages.deleting);
+	 	 	 	 self._deleteRecordFromServer(
+						 self._$deletingRow,
+						 function () {
+						 	 self._removeRowsFromTableWithAnimation(self._$deletingRow);
+						 	 self._$deleteRecordDiv.modal("hide");
+						 },
+						 function (message) { //error
+						 	 self._showError(message);
+						 	 self._setEnabledOfDialogButton($deleteButton, true, self.options.messages.deleteText);
+						 }
+				 );
 
-            if ($rows.length <= 0) {
-                self._logWarn('No rows specified to jTable deleteRows method.');
-                return;
-            }
+	 	 	 });
 
-            if (self._isBusy()) {
-                self._logWarn('Can not delete rows since jTable is busy!');
-                return;
-            }
+	 	 	 self._$deleteRecordDiv.on("hidden.bs.modal", function (event) {
+	 	 	 	 var $deleteButton = $(this).find("#DeleteDialogButton");
+	 	 	 	 self._setEnabledOfDialogButton($deleteButton, true, self.options.messages.deleteText);
+	 	 	 	 $(this).removeClass("fv-modal-stack");
 
-            //Deleting just one row
-            if ($rows.length == 1) {
-                self._deleteRecordFromServer(
-                    $rows,
-                    function () { //success
-                        self._removeRowsFromTableWithAnimation($rows);
-                    },
-                    function (message) { //error
-                        self._showError(message);
-                    }
-                );
+	 	 	 	 if ($("body").data("fv_open_modals") > 0) {
+	 	 	 	 	 $("body").data("fv_open_modals", $("body").data("fv_open_modals") - 1);
+	 	 	 	 }
+	 	 	 });
+	 	 },
 
-                return;
-            }
+	 	 /************************************************************************
+		 * PUBLIC METHODS                                                        *
+		 *************************************************************************/
 
-            //Deleting multiple rows
-            self._showBusy(self._formatString(self.options.messages.deleteProggress, 0, $rows.length));
+	 	 /* This method is used to delete one or more rows from server and the table.
+		 *************************************************************************/
+	 	 deleteRows: function ($rows) {
+	 	 	 var self = this;
 
-            //This method checks if deleting of all records is completed
-            var completedCount = 0;
-            var isCompleted = function () {
-                return (completedCount >= $rows.length);
-            };
+	 	 	 if ($rows.length <= 0) {
+	 	 	 	 self._logWarn('No rows specified to jTable deleteRows method.');
+	 	 	 	 return;
+	 	 	 }
 
-            //This method is called when deleting of all records completed
-            var completed = function () {
-                var $deletedRows = $rows.filter('.jtable-row-ready-to-remove');
-                if ($deletedRows.length < $rows.length) {
-                    self._showError(self._formatString(self.options.messages.canNotDeletedRecords, $rows.length - $deletedRows.length, $rows.length));
-                }
+	 	 	 if (self._isBusy()) {
+	 	 	 	 self._logWarn('Can not delete rows since jTable is busy!');
+	 	 	 	 return;
+	 	 	 }
 
-                if ($deletedRows.length > 0) {
-                    self._removeRowsFromTableWithAnimation($deletedRows);
-                }
+	 	 	 //Deleting just one row
+	 	 	 if ($rows.length == 1) {
+	 	 	 	 self._deleteRecordFromServer(
+						 $rows,
+						 function () { //success
+						 	 self._removeRowsFromTableWithAnimation($rows);
+						 },
+						 function (message) { //error
+						 	 self._showError(message);
+						 }
+				 );
 
-                self._hideBusy();
-            };
+	 	 	 	 return;
+	 	 	 }
 
-            //Delete all rows
-            var deletedCount = 0;
-            $rows.each(function () {
-                var $row = $(this);
-                self._deleteRecordFromServer(
-                    $row,
-                    function () { //success
-                        ++deletedCount; ++completedCount;
-                        $row.addClass('jtable-row-ready-to-remove');
-                        self._showBusy(self._formatString(self.options.messages.deleteProggress, deletedCount, $rows.length));
-                        if (isCompleted()) {
-                            completed();
-                        }
-                    },
-                    function () { //error
-                        ++completedCount;
-                        if (isCompleted()) {
-                            completed();
-                        }
-                    }
-                );
-            });
-        },
+	 	 	 //Deleting multiple rows
+	 	 	 self._showBusy(self._formatString(self.options.messages.deleteProggress, 0, $rows.length));
 
-        /* Deletes a record from the table (optionally from the server also).
-        *************************************************************************/
-        deleteRecord: function (options) {
-            var self = this;
-            options = $.extend({
-                clientOnly: false,
-                animationsEnabled: self.options.animationsEnabled,
-                url: self.options.actions.deleteAction,
-                success: function () { },
-                error: function () { }
-            }, options);
+	 	 	 //This method checks if deleting of all records is completed
+	 	 	 var completedCount = 0;
+	 	 	 var isCompleted = function () {
+	 	 	 	 return (completedCount >= $rows.length);
+	 	 	 };
 
-            if (options.key == undefined) {
-                self._logWarn('options parameter in deleteRecord method must contain a key property.');
-                return;
-            }
+	 	 	 //This method is called when deleting of all records completed
+	 	 	 var completed = function () {
+	 	 	 	 var $deletedRows = $rows.filter('.jtable-row-ready-to-remove');
+	 	 	 	 if ($deletedRows.length < $rows.length) {
+	 	 	 	 	 self._showError(self._formatString(self.options.messages.canNotDeletedRecords, $rows.length - $deletedRows.length, $rows.length));
+	 	 	 	 }
 
-            var $deletingRow = self.getRowByKey(options.key);
-            if ($deletingRow == null) {
-                self._logWarn('Can not found any row by key: ' + options.key);
-                return;
-            }
+	 	 	 	 if ($deletedRows.length > 0) {
+	 	 	 	 	 self._removeRowsFromTableWithAnimation($deletedRows);
+	 	 	 	 }
 
-            if (options.clientOnly) {
-                self._removeRowsFromTableWithAnimation($deletingRow, options.animationsEnabled);
-                options.success();
-                return;
-            }
+	 	 	 	 self._hideBusy();
+	 	 	 };
 
-            self._deleteRecordFromServer(
-                    $deletingRow,
-                    function (data) { //success
-                        self._removeRowsFromTableWithAnimation($deletingRow, options.animationsEnabled);
-                        options.success(data);
-                    },
-                    function (message) { //error
-                        self._showError(message);
-                        options.error(message);
-                    },
-                    options.url
-                );
-        },
+	 	 	 //Delete all rows
+	 	 	 var deletedCount = 0;
+	 	 	 $rows.each(function () {
+	 	 	 	 var $row = $(this);
+	 	 	 	 self._deleteRecordFromServer(
+						 $row,
+						 function () { //success
+						 	 ++deletedCount; ++completedCount;
+						 	 $row.addClass('jtable-row-ready-to-remove');
+						 	 self._showBusy(self._formatString(self.options.messages.deleteProggress, deletedCount, $rows.length));
+						 	 if (isCompleted()) {
+						 	 	 completed();
+						 	 }
+						 },
+						 function () { //error
+						 	 ++completedCount;
+						 	 if (isCompleted()) {
+						 	 	 completed();
+						 	 }
+						 }
+				 );
+	 	 	 });
+	 	 },
 
-        /************************************************************************
-        * OVERRIDED METHODS                                                     *
-        *************************************************************************/
+	 	 /* Deletes a record from the table (optionally from the server also).
+		 *************************************************************************/
+	 	 deleteRecord: function (options) {
+	 	 	 var self = this;
+	 	 	 options = $.extend({
+	 	 	 	 clientOnly: false,
+	 	 	 	 animationsEnabled: self.options.animationsEnabled,
+	 	 	 	 url: self.options.actions.deleteAction,
+	 	 	 	 success: function () { },
+	 	 	 	 error: function () { }
+	 	 	 }, options);
 
-        /* Overrides base method to add a 'deletion column cell' to header row.
-        *************************************************************************/
-        _addColumnsToHeaderRow: function ($tr) {
-            base._addColumnsToHeaderRow.apply(this, arguments);
-            if (this.options.actions.deleteAction != undefined) {
-                $tr.append(this._createEmptyCommandHeader());
-            }
-        },
+	 	 	 if (options.key == undefined) {
+	 	 	 	 self._logWarn('options parameter in deleteRecord method must contain a key property.');
+	 	 	 	 return;
+	 	 	 }
 
-        /* Overrides base method to add a 'delete command cell' to a row.
-        *************************************************************************/
-        _addCellsToRowUsingRecord: function ($row) {
-            base._addCellsToRowUsingRecord.apply(this, arguments);
+	 	 	 var $deletingRow = self.getRowByKey(options.key);
+	 	 	 if ($deletingRow == null) {
+	 	 	 	 self._logWarn('Can not found any row by key: ' + options.key);
+	 	 	 	 return;
+	 	 	 }
 
-            var self = this;
-            if (self.options.actions.deleteAction != undefined) {
-                var $span = $('<span></span>').html(self.options.messages.deleteText);
-                var $button = $('<button title="' + self.options.messages.deleteText + '"></button>')
-                    .addClass('jtable-command-button jtable-delete-command-button')
-                    .append($span)
-                    .click(function (e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        self._deleteButtonClickedForRow($row);
-                    });
-                $('<td></td>')
-                    .addClass('jtable-command-column')
-                    .append($button)
-                    .appendTo($row);
-            }
-        },
+	 	 	 if (options.clientOnly) {
+	 	 	 	 self._removeRowsFromTableWithAnimation($deletingRow, options.animationsEnabled);
+	 	 	 	 options.success();
+	 	 	 	 return;
+	 	 	 }
 
-        /************************************************************************
-        * PRIVATE METHODS                                                       *
-        *************************************************************************/
+	 	 	 self._deleteRecordFromServer(
+							 $deletingRow,
+							 function (data) { //success
+							 	 self._removeRowsFromTableWithAnimation($deletingRow, options.animationsEnabled);
+							 	 options.success(data);
+							 },
+							 function (message) { //error
+							 	 self._showError(message);
+							 	 options.error(message);
+							 },
+							 options.url
+					 );
+	 	 },
 
-        /* This method is called when user clicks delete button on a row.
-        *************************************************************************/
-        _deleteButtonClickedForRow: function ($row) {
-            var self = this;
+	 	 /************************************************************************
+		 * OVERRIDED METHODS                                                     *
+		 *************************************************************************/
 
-            var deleteConfirm;
-            var deleteConfirmMessage = self.options.messages.deleteConfirmation;
+	 	 /* Overrides base method to add a 'deletion column cell' to header row.
+		 *************************************************************************/
+	 	 _addColumnsToHeaderRow: function ($tr) {
+	 	 	 base._addColumnsToHeaderRow.apply(this, arguments);
+	 	 	 if (this.options.actions.deleteAction != undefined) {
+	 	 	 	 $tr.append(this._createEmptyCommandHeader());
+	 	 	 }
+	 	 },
 
-            //If options.deleteConfirmation is function then call it
-            if ($.isFunction(self.options.deleteConfirmation)) {
-                var data = { row: $row, record: $row.data('record'), deleteConfirm: true, deleteConfirmMessage: deleteConfirmMessage, cancel: false, cancelMessage: null };
-                self.options.deleteConfirmation(data);
+	 	 /* Overrides base method to add a 'delete command cell' to a row.
+		 *************************************************************************/
+	 	 _addCellsToRowUsingRecord: function ($row) {
+	 	 	 base._addCellsToRowUsingRecord.apply(this, arguments);
 
-                //If delete progress is cancelled
-                if (data.cancel) {
+	 	 	 var self = this;
+	 	 	 if (self.options.actions.deleteAction != undefined) {
+	 	 	 	 var $span = $('<span class="glyphicon glyphicon-trash"></span>');
+	 	 	 	 var $button = $('<button type="button" title="' + self.options.messages.deleteText + '"></button>')
+						 .addClass('btn btn-xs btn-danger')
+						 .append($span)
+						 .click(function (e) {
+						 	 e.preventDefault();
+						 	 e.stopPropagation();
+						 	 self._deleteButtonClickedForRow($row);
+						 });
+	 	 	 	 $('<td></td>')
+						 .addClass('jtable-command-column')
+						 .append($button)
+						 .appendTo($row);
+	 	 	 }
+	 	 },
 
-                    //If a canlellation reason is specified
-                    if (data.cancelMessage) {
-                        self._showError(data.cancelMessage); //TODO: show warning/stop message instead of error (also show warning/error ui icon)!
-                    }
+	 	 /************************************************************************
+		 * PRIVATE METHODS                                                       *
+		 *************************************************************************/
 
-                    return;
-                }
+	 	 /* This method is called when user clicks delete button on a row.
+		 *************************************************************************/
+	 	 _deleteButtonClickedForRow: function ($row) {
+	 	 	 var self = this;
 
-                deleteConfirmMessage = data.deleteConfirmMessage;
-                deleteConfirm = data.deleteConfirm;
-            } else {
-                deleteConfirm = self.options.deleteConfirmation;
-            }
+	 	 	 var deleteConfirm;
+	 	 	 var deleteConfirmMessage = self.options.messages.deleteConfirmation;
 
-            if (deleteConfirm != false) {
-                //Confirmation
-                self._$deleteRecordDiv.find('.jtable-delete-confirm-message').html(deleteConfirmMessage);
-                self._showDeleteDialog($row);
-            } else {
-                //No confirmation
-                self._deleteRecordFromServer(
-                    $row,
-                    function () { //success
-                        self._removeRowsFromTableWithAnimation($row);
-                    },
-                    function (message) { //error
-                        self._showError(message);
-                    }
-                );
-            }
-        },
+	 	 	 //If options.deleteConfirmation is function then call it
+	 	 	 if ($.isFunction(self.options.deleteConfirmation)) {
+	 	 	 	 var data = { row: $row, record: $row.data('record'), deleteConfirm: true, deleteConfirmMessage: deleteConfirmMessage, cancel: false, cancelMessage: null };
+	 	 	 	 self.options.deleteConfirmation(data);
 
-        /* Shows delete comfirmation dialog.
-        *************************************************************************/
-        _showDeleteDialog: function ($row) {
-            this._$deletingRow = $row;
-            this._$deleteRecordDiv.dialog('open');
-        },
+	 	 	 	 //If delete progress is cancelled
+	 	 	 	 if (data.cancel) {
 
-        /* Performs an ajax call to server to delete record
-        *  and removes row of the record from table if ajax call success.
-        *************************************************************************/
-        _deleteRecordFromServer: function ($row, success, error, url) {
-            var self = this;
+	 	 	 	 	 //If a canlellation reason is specified
+	 	 	 	 	 if (data.cancelMessage) {
+	 	 	 	 	 	 self._showError(data.cancelMessage); //TODO: show warning/stop message instead of error (also show warning/error ui icon)!
+	 	 	 	 	 }
 
-            var completeDelete = function(data) {
-                if (data.Result != 'OK') {
-                    $row.data('deleting', false);
-                    if (error) {
-                        error(data.Message);
-                    }
+	 	 	 	 	 return;
+	 	 	 	 }
 
-                    return;
-                }
+	 	 	 	 deleteConfirmMessage = data.deleteConfirmMessage;
+	 	 	 	 deleteConfirm = data.deleteConfirm;
+	 	 	 } else {
+	 	 	 	 deleteConfirm = self.options.deleteConfirmation;
+	 	 	 }
 
-                self._trigger("recordDeleted", null, { record: $row.data('record'), row: $row, serverResponse: data });
+	 	 	 if (deleteConfirm != false) {
+	 	 	 	 //Confirmation
+	 	 	 	 deleteConfirmMessage = "<p>" + deleteConfirmMessage + "</p>";
+	 	 	 	 self._$deleteRecordDiv.find(".modal-body").html(deleteConfirmMessage);
+	 	 	 	 self._showDeleteDialog($row);
+	 	 	 } else {
+	 	 	 	 //No confirmation
+	 	 	 	 self._deleteRecordFromServer(
+						 $row,
+						 function () { //success
+						 	 self._removeRowsFromTableWithAnimation($row);
+						 },
+						 function (message) { //error
+						 	 self._showError(message);
+						 }
+				 );
+	 	 	 }
+	 	 },
 
-                if (success) {
-                    success(data);
-                }
-            };
+	 	 /* Shows delete comfirmation dialog.
+		 *************************************************************************/
+	 	 _showDeleteDialog: function ($row) {
+	 	 	 this._$deletingRow = $row;
+	 	 	 this._$deleteRecordDiv.modal("show");
+	 	 },
 
-            //Check if it is already being deleted right now
-            if ($row.data('deleting') == true) {
-                return;
-            }
+	 	 /* Performs an ajax call to server to delete record
+		 *  and removes row of the record from table if ajax call success.
+		 *************************************************************************/
+	 	 _deleteRecordFromServer: function ($row, success, error, url) {
+	 	 	 var self = this;
 
-            $row.data('deleting', true);
+	 	 	 var completeDelete = function (data) {
+	 	 	 	 if (data.Result != 'OK') {
+	 	 	 	 	 $row.data('deleting', false);
+	 	 	 	 	 if (error) {
+	 	 	 	 	 	 error(data.Message);
+	 	 	 	 	 }
 
-            var postData = {};
-            postData[self._keyField] = self._getKeyValueOfRecord($row.data('record'));
-            
-            //deleteAction may be a function, check if it is
-            if (!url && $.isFunction(self.options.actions.deleteAction)) {
+	 	 	 	 	 return;
+	 	 	 	 }
 
-                //Execute the function
-                var funcResult = self.options.actions.deleteAction(postData);
+	 	 	 	 self._trigger("recordDeleted", null, { record: $row.data('record'), row: $row, serverResponse: data });
 
-                //Check if result is a jQuery Deferred object
-                if (self._isDeferredObject(funcResult)) {
-                    //Wait promise
-                    funcResult.done(function (data) {
-                        completeDelete(data);
-                    }).fail(function () {
-                        $row.data('deleting', false);
-                        if (error) {
-                            error(self.options.messages.serverCommunicationError);
-                        }
-                    });
-                } else { //assume it returned the deletion result
-                    completeDelete(funcResult);
-                }
+	 	 	 	 if (success) {
+	 	 	 	 	 success(data);
+	 	 	 	 }
+	 	 	 };
 
-            } else { //Assume it's a URL string
-                //Make ajax call to delete the record from server
-                this._ajax({
-                    url: (url || self.options.actions.deleteAction),
-                    data: postData,
-                    success: function (data) {
-                        completeDelete(data);
-                    },
-                    error: function () {
-                        $row.data('deleting', false);
-                        if (error) {
-                            error(self.options.messages.serverCommunicationError);
-                        }
-                    }
-                });
+	 	 	 //Check if it is already being deleted right now
+	 	 	 if ($row.data('deleting') == true) {
+	 	 	 	 return;
+	 	 	 }
 
-            }
-        },
+	 	 	 $row.data('deleting', true);
 
-        /* Removes a row from table after a 'deleting' animation.
-        *************************************************************************/
-        _removeRowsFromTableWithAnimation: function ($rows, animationsEnabled) {
-            var self = this;
+	 	 	 var postData = {};
+	 	 	 postData[self._keyField] = self._getKeyValueOfRecord($row.data('record'));
 
-            if (animationsEnabled == undefined) {
-                animationsEnabled = self.options.animationsEnabled;
-            }
+	 	 	 //deleteAction may be a function, check if it is
+	 	 	 if (!url && $.isFunction(self.options.actions.deleteAction)) {
 
-            if (animationsEnabled) {
-                var className = 'jtable-row-deleting';
-                if (this.options.jqueryuiTheme) {
-                    className = className + ' ui-state-disabled';
-                }
+	 	 	 	 //Execute the function
+	 	 	 	 var funcResult = self.options.actions.deleteAction(postData);
 
-                //Stop current animation (if does exists) and begin 'deleting' animation.
-                $rows.stop(true, true).addClass(className, 'slow', '').promise().done(function () {
-                    self._removeRowsFromTable($rows, 'deleted');
-                });
-            } else {
-                self._removeRowsFromTable($rows, 'deleted');
-            }
-        }
+	 	 	 	 //Check if result is a jQuery Deferred object
+	 	 	 	 if (self._isDeferredObject(funcResult)) {
+	 	 	 	 	 //Wait promise
+	 	 	 	 	 funcResult.done(function (data) {
+	 	 	 	 	 	 completeDelete(data);
+	 	 	 	 	 }).fail(function () {
+	 	 	 	 	 	 $row.data('deleting', false);
+	 	 	 	 	 	 if (error) {
+	 	 	 	 	 	 	 error(self.options.messages.serverCommunicationError);
+	 	 	 	 	 	 }
+	 	 	 	 	 });
+	 	 	 	 } else { //assume it returned the deletion result
+	 	 	 	 	 completeDelete(funcResult);
+	 	 	 	 }
 
-    });
+	 	 	 } else { //Assume it's a URL string
+	 	 	 	 //Make ajax call to delete the record from server
+	 	 	 	 this._ajax({
+	 	 	 	 	 url: (url || self.options.actions.deleteAction),
+	 	 	 	 	 data: postData,
+	 	 	 	 	 success: function (data) {
+	 	 	 	 	 	 completeDelete(data);
+	 	 	 	 	 },
+	 	 	 	 	 error: function () {
+	 	 	 	 	 	 $row.data('deleting', false);
+	 	 	 	 	 	 if (error) {
+	 	 	 	 	 	 	 error(self.options.messages.serverCommunicationError);
+	 	 	 	 	 	 }
+	 	 	 	 	 }
+	 	 	 	 });
+
+	 	 	 }
+	 	 },
+
+	 	 /* Removes a row from table after a 'deleting' animation.
+		 *************************************************************************/
+	 	 _removeRowsFromTableWithAnimation: function ($rows, animationsEnabled) {
+	 	 	 var self = this;
+
+	 	 	 if (animationsEnabled == undefined) {
+	 	 	 	 animationsEnabled = self.options.animationsEnabled;
+	 	 	 }
+
+	 	 	 if (animationsEnabled) {
+	 	 	 	 var className = 'jtable-row-deleting';
+	 	 	 	 if (this.options.jqueryuiTheme) {
+	 	 	 	 	 className = className + ' ui-state-disabled';
+	 	 	 	 }
+
+	 	 	 	 //Stop current animation (if does exists) and begin 'deleting' animation.
+	 	 	 	 $rows.stop(true, true).addClass(className, 'slow', '').promise().done(function () {
+	 	 	 	 	 self._removeRowsFromTable($rows, 'deleted');
+	 	 	 	 });
+	 	 	 } else {
+	 	 	 	 self._removeRowsFromTable($rows, 'deleted');
+	 	 	 }
+	 	 }
+
+	 });
 
 })(jQuery);

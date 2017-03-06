@@ -3,169 +3,169 @@
 *************************************************************************/
 (function ($) {
 
-    //Reference to base object members
-    var base = {
-        _removeRowsFromTable: $.hik.jtable.prototype._removeRowsFromTable
-    };
+	 //Reference to base object members
+	 var base = {
+	 	 _removeRowsFromTable: $.hik.jtable.prototype._removeRowsFromTable
+	 };
 
-    //extension members
-    $.extend(true, $.hik.jtable.prototype, {
+	 //extension members
+	 $.extend(true, $.hik.jtable.prototype, {
 
-        /************************************************************************
-        * DEFAULT OPTIONS / EVENTS                                              *
-        *************************************************************************/
-        options: {
-            openChildAsAccordion: false
-        },
+	 	 /************************************************************************
+		 * DEFAULT OPTIONS / EVENTS                                              *
+		 *************************************************************************/
+	 	 options: {
+	 	 	 openChildAsAccordion: false
+	 	 },
 
-        /************************************************************************
-        * PUBLIC METHODS                                                        *
-        *************************************************************************/
+	 	 /************************************************************************
+		 * PUBLIC METHODS                                                        *
+		 *************************************************************************/
 
-        /* Creates and opens a new child table for given row.
-        *************************************************************************/
-        openChildTable: function ($row, tableOptions, opened) {
-            var self = this;
+	 	 /* Creates and opens a new child table for given row.
+		 *************************************************************************/
+	 	 openChildTable: function ($row, tableOptions, opened) {
+	 	 	 var self = this;
 
-            //Apply theming as same as parent table unless explicitily set
-            if (tableOptions.jqueryuiTheme == undefined) {
-                tableOptions.jqueryuiTheme = self.options.jqueryuiTheme;
-            }
+	 	 	 //Apply theming as same as parent table unless explicitily set
+	 	 	 if (tableOptions.jqueryuiTheme == undefined) {
+	 	 	 	 tableOptions.jqueryuiTheme = self.options.jqueryuiTheme;
+	 	 	 }
 
-            //Show close button as default
-            tableOptions.showCloseButton = (tableOptions.showCloseButton != false);
+	 	 	 //Show close button as default
+	 	 	 tableOptions.showCloseButton = (tableOptions.showCloseButton != false);
 
-            //Close child table when close button is clicked (default behavior)
-            if (tableOptions.showCloseButton && !tableOptions.closeRequested) {
-                tableOptions.closeRequested = function () {
-                    self.closeChildTable($row);
-                };
-            }
+	 	 	 //Close child table when close button is clicked (default behavior)
+	 	 	 if (tableOptions.showCloseButton && !tableOptions.closeRequested) {
+	 	 	 	 tableOptions.closeRequested = function () {
+	 	 	 	 	 self.closeChildTable($row);
+	 	 	 	 };
+	 	 	 }
 
-            //If accordion style, close open child table (if it does exists)
-            if (self.options.openChildAsAccordion) {
-                $row.siblings('.jtable-data-row').each(function () {
-                    self.closeChildTable($(this));
-                });
-            }
+	 	 	 //If accordion style, close open child table (if it does exists)
+	 	 	 if (self.options.openChildAsAccordion) {
+	 	 	 	 $row.siblings('.jtable-data-row').each(function () {
+	 	 	 	 	 self.closeChildTable($(this));
+	 	 	 	 });
+	 	 	 }
 
-            //Close child table for this row and open new one for child table
-            self.closeChildTable($row, function () {
-                var $childRowColumn = self.getChildRow($row).children('td').empty();
-                var $childTableContainer = $('<div />')
-                    .addClass('jtable-child-table-container')
-                    .appendTo($childRowColumn);
-                $childRowColumn.data('childTable', $childTableContainer);
-                $childTableContainer.jtable(tableOptions);
-                self.openChildRow($row);
-                $childTableContainer.hide().slideDown('fast', function () {
-                    if (opened) {
-                        opened({
-                             childTable: $childTableContainer
-                        });
-                    }
-                });
-            });
-        },
+	 	 	 //Close child table for this row and open new one for child table
+	 	 	 self.closeChildTable($row, function () {
+	 	 	 	 var $childRowColumn = self.getChildRow($row).children('td').empty();
+	 	 	 	 var $childTableContainer = $('<div />')
+						 .addClass('jtable-child-table-container')
+						 .appendTo($childRowColumn);
+	 	 	 	 $childRowColumn.data('childTable', $childTableContainer);
+	 	 	 	 $childTableContainer.jtable(tableOptions);
+	 	 	 	 self.openChildRow($row);
+	 	 	 	 $childTableContainer.hide().slideDown('fast', function () {
+	 	 	 	 	 if (opened) {
+	 	 	 	 	 	 opened({
+	 	 	 	 	 	 	 childTable: $childTableContainer
+	 	 	 	 	 	 });
+	 	 	 	 	 }
+	 	 	 	 });
+	 	 	 });
+	 	 },
 
-        /* Closes child table for given row.
-        *************************************************************************/
-        closeChildTable: function ($row, closed) {
-            var self = this;
-            
-            var $childRowColumn = this.getChildRow($row).children('td');
-            var $childTable = $childRowColumn.data('childTable');
-            if (!$childTable) {
-                if (closed) {
-                    closed();
-                }
+	 	 /* Closes child table for given row.
+		 *************************************************************************/
+	 	 closeChildTable: function ($row, closed) {
+	 	 	 var self = this;
 
-                return;
-            }
+	 	 	 var $childRowColumn = this.getChildRow($row).children('td');
+	 	 	 var $childTable = $childRowColumn.data('childTable');
+	 	 	 if (!$childTable) {
+	 	 	 	 if (closed) {
+	 	 	 	 	 closed();
+	 	 	 	 }
 
-            $childRowColumn.data('childTable', null);
-            $childTable.slideUp('fast', function () {
-                $childTable.jtable('destroy');
-                $childTable.remove();
-                self.closeChildRow($row);
-                if (closed) {
-                    closed();
-                }
-            });
-        },
+	 	 	 	 return;
+	 	 	 }
 
-        /* Returns a boolean value indicates that if a child row is open for given row.
-        *************************************************************************/
-        isChildRowOpen: function ($row) {
-            return (this.getChildRow($row).is(':visible'));
-        },
+	 	 	 $childRowColumn.data('childTable', null);
+	 	 	 $childTable.slideUp('fast', function () {
+	 	 	 	 $childTable.jtable('destroy');
+	 	 	 	 $childTable.remove();
+	 	 	 	 self.closeChildRow($row);
+	 	 	 	 if (closed) {
+	 	 	 	 	 closed();
+	 	 	 	 }
+	 	 	 });
+	 	 },
 
-        /* Gets child row for given row, opens it if it's closed (Creates if needed).
-        *************************************************************************/
-        getChildRow: function ($row) {
-            return $row.data('childRow') || this._createChildRow($row);
-        },
+	 	 /* Returns a boolean value indicates that if a child row is open for given row.
+		 *************************************************************************/
+	 	 isChildRowOpen: function ($row) {
+	 	 	 return (this.getChildRow($row).is(':visible'));
+	 	 },
 
-        /* Creates and opens child row for given row.
-        *************************************************************************/
-        openChildRow: function ($row) {
-            var $childRow = this.getChildRow($row);
-            if (!$childRow.is(':visible')) {
-                $childRow.show();
-            }
+	 	 /* Gets child row for given row, opens it if it's closed (Creates if needed).
+		 *************************************************************************/
+	 	 getChildRow: function ($row) {
+	 	 	 return $row.data('childRow') || this._createChildRow($row);
+	 	 },
 
-            return $childRow;
-        },
+	 	 /* Creates and opens child row for given row.
+		 *************************************************************************/
+	 	 openChildRow: function ($row) {
+	 	 	 var $childRow = this.getChildRow($row);
+	 	 	 if (!$childRow.is(':visible')) {
+	 	 	 	 $childRow.show();
+	 	 	 }
 
-        /* Closes child row if it's open.
-        *************************************************************************/
-        closeChildRow: function ($row) {
-            var $childRow = this.getChildRow($row);
-            if ($childRow.is(':visible')) {
-                $childRow.hide();
-            }
-        },
+	 	 	 return $childRow;
+	 	 },
 
-        /************************************************************************
-        * OVERRIDED METHODS                                                     *
-        *************************************************************************/
+	 	 /* Closes child row if it's open.
+		 *************************************************************************/
+	 	 closeChildRow: function ($row) {
+	 	 	 var $childRow = this.getChildRow($row);
+	 	 	 if ($childRow.is(':visible')) {
+	 	 	 	 $childRow.hide();
+	 	 	 }
+	 	 },
 
-        /* Overrides _removeRowsFromTable method to remove child rows of deleted rows.
-        *************************************************************************/
-        _removeRowsFromTable: function ($rows, reason) {
-            //var self = this;
+	 	 /************************************************************************
+		 * OVERRIDED METHODS                                                     *
+		 *************************************************************************/
 
-            if (reason == 'deleted') {
-                $rows.each(function () {
-                    var $row = $(this);
-                    var $childRow = $row.data('childRow');
-                    if ($childRow) {
-                        //self.closeChildTable($row); //Removed since it causes "Uncaught Error: cannot call methods on jtable prior to initialization; attempted to call method 'destroy'"
-                        $childRow.remove();
-                    }
-                });
-            }
+	 	 /* Overrides _removeRowsFromTable method to remove child rows of deleted rows.
+		 *************************************************************************/
+	 	 _removeRowsFromTable: function ($rows, reason) {
+	 	 	 //var self = this;
 
-            base._removeRowsFromTable.apply(this, arguments);
-        },
+	 	 	 if (reason == 'deleted') {
+	 	 	 	 $rows.each(function () {
+	 	 	 	 	 var $row = $(this);
+	 	 	 	 	 var $childRow = $row.data('childRow');
+	 	 	 	 	 if ($childRow) {
+	 	 	 	 	 	 //self.closeChildTable($row); //Removed since it causes "Uncaught Error: cannot call methods on jtable prior to initialization; attempted to call method 'destroy'"
+	 	 	 	 	 	 $childRow.remove();
+	 	 	 	 	 }
+	 	 	 	 });
+	 	 	 }
 
-        /************************************************************************
-        * PRIVATE METHODS                                                       *
-        *************************************************************************/
+	 	 	 base._removeRowsFromTable.apply(this, arguments);
+	 	 },
 
-        /* Creates a child row for a row, hides and returns it.
-        *************************************************************************/
-        _createChildRow: function ($row) {
-            var totalColumnCount = this._$table.find('thead th').length;
-            var $childRow = $('<tr></tr>')
-                .addClass('jtable-child-row')
-                .append('<td colspan="' + totalColumnCount + '"></td>');
-            $row.after($childRow);
-            $row.data('childRow', $childRow);
-            $childRow.hide();
-            return $childRow;
-        }
+	 	 /************************************************************************
+		 * PRIVATE METHODS                                                       *
+		 *************************************************************************/
 
-    });
+	 	 /* Creates a child row for a row, hides and returns it.
+		 *************************************************************************/
+	 	 _createChildRow: function ($row) {
+	 	 	 var totalColumnCount = this._$table.find('thead th').length;
+	 	 	 var $childRow = $('<tr></tr>')
+					 .addClass('jtable-child-row')
+					 .append('<td colspan="' + totalColumnCount + '"></td>');
+	 	 	 $row.after($childRow);
+	 	 	 $row.data('childRow', $childRow);
+	 	 	 $childRow.hide();
+	 	 	 return $childRow;
+	 	 }
+
+	 });
 
 })(jQuery);

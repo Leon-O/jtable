@@ -1,348 +1,357 @@
-/************************************************************************
+﻿/************************************************************************
 * CREATE RECORD extension for jTable                                    *
 *************************************************************************/
 (function ($) {
 
-    //Reference to base object members
-    var base = {
-        _create: $.hik.jtable.prototype._create
-    };
+	 //Reference to base object members
+	 var base = {
+	 	 _create: $.hik.jtable.prototype._create,
+	 	 _formatModalWindow: $.hik.jtable.prototype._formatModalWindow
+	 };
 
-    //extension members
-    $.extend(true, $.hik.jtable.prototype, {
+	 //extension members
+	 $.extend(true, $.hik.jtable.prototype, {
 
-        /************************************************************************
-        * DEFAULT OPTIONS / EVENTS                                              *
-        *************************************************************************/
-        options: {
+	 	 /************************************************************************
+		 * DEFAULT OPTIONS / EVENTS                                              *
+		 *************************************************************************/
+	 	 options: {
 
-            //Events
-            recordAdded: function (event, data) { },
+	 	 	 //Events
+	 	 	 recordAdded: function (event, data) { },
 
-            //Localization
-            messages: {
-                addNewRecord: 'Add new record'
-            }
-        },
+	 	 	 //Localization
+	 	 	 messages: {
+	 	 	 	 addNewRecord: 'Add new record'
+	 	 	 }
+	 	 },
 
-        /************************************************************************
-        * PRIVATE FIELDS                                                        *
-        *************************************************************************/
+	 	 /************************************************************************
+		 * PRIVATE FIELDS                                                        *
+		 *************************************************************************/
 
-        _$addRecordDiv: null, //Reference to the adding new record dialog div (jQuery object)
+	 	 _$addRecordDiv: null, //Reference to the adding new record dialog div (jQuery object)
 
-        /************************************************************************
-        * CONSTRUCTOR                                                           *
-        *************************************************************************/
+	 	 /************************************************************************
+		 * CONSTRUCTOR                                                           *
+		 *************************************************************************/
 
-        /* Overrides base method to do create-specific constructions.
-        *************************************************************************/
-        _create: function () {
-            base._create.apply(this, arguments);
+	 	 /* Overrides base method to do create-specific constructions.
+		 *************************************************************************/
+	 	 _create: function () {
+	 	 	 base._create.apply(this, arguments);
 
-            if (!this.options.actions.createAction) {
-                return;
-            }
+	 	 	 if (!this.options.actions.createAction) {
+	 	 	 	 return;
+	 	 	 }
 
-            this._createAddRecordDialogDiv();
-        },
+	 	 	 this._createAddRecordDialogDiv();
+	 	 },
 
-        /* Creates and prepares add new record dialog div
-        *************************************************************************/
-        _createAddRecordDialogDiv: function () {
-            var self = this;
+	 	 /* Creates and prepares add new record dialog div
+		 *************************************************************************/
+	 	 _createAddRecordDialogDiv: function () {
+	 	 	 var self = this;
 
-            //Create a div for dialog and add to container element
-            self._$addRecordDiv = $('<div />')
-                .appendTo(self._$mainContainer);
+	 	 	 //Create a div for dialog and add to container element
+	 	 	 self._$addRecordDiv = $("<div />")
+					 .appendTo(self._$mainContainer);
 
-            //Prepare dialog
-            self._$addRecordDiv.dialog({
-                autoOpen: false,
-                show: self.options.dialogShowEffect,
-                hide: self.options.dialogHideEffect,
-                width: 'auto',
-                minWidth: '300',
-                modal: true,
-                title: self.options.messages.addNewRecord,
-                buttons:
-                        [{ //Cancel button
-                            text: self.options.messages.cancel,
-                            click: function () {
-                                self._$addRecordDiv.dialog('close');
-                            }
-                        }, { //Save button
-                            id: 'AddRecordDialogSaveButton',
-                            text: self.options.messages.save,
-                            click: function () {
-                                self._onSaveClickedOnCreateForm();
-                            }
-                        }],
-                close: function () {
-                    var $addRecordForm = self._$addRecordDiv.find('form').first();
-                    var $saveButton = self._$addRecordDiv.parent().find('#AddRecordDialogSaveButton');
-                    self._trigger("formClosed", null, { form: $addRecordForm, formType: 'create' });
-                    self._setEnabledOfDialogButton($saveButton, true, self.options.messages.save);
-                    $addRecordForm.remove();
-                }
-            });
+	 	 	 //Prepare dialog
+	 	 	 self._$addRecordDiv.addClass("modal fade");
+	 	 	 self._$addRecordDiv.css({
+	 	 	 	 width: "auto"
+	 	 	 });
 
-            if (self.options.addRecordButton) {
-                //If user supplied a button, bind the click event to show dialog form
-                self.options.addRecordButton.click(function (e) {
-                    e.preventDefault();
-                    self._showAddRecordForm();
-                });
-            } else {
-                //If user did not supplied a button, create a 'add record button' toolbar item.
-                self._addToolBarItem({
-                    icon: true,
-                    cssClass: 'jtable-toolbar-item-add-record',
-                    text: self.options.messages.addNewRecord,
-                    click: function () {
-                        self._showAddRecordForm();
-                    }
-                });
-            }
-        },
+	 	 	 self._$addRecordDiv.append("<div class=\"modal-dialog modal-lg\">" +
+									 "<div class=\"modal-content\">" +
+									 "<div class=\"modal-header\">" +
+									 "<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>" +
+									 "<h4>" + self.options.messages.addNewRecord + "</h4></div>" +
+									 "<div class=\"modal-body\"></div>" +
+									 "<div class=\"modal-footer\">" +
+									 "<button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">" + self.options.messages.cancel + "</button>" +
+									 "<button type=\"button\" id=\"AddRecordDialogSaveButton\" class=\"btn btn-primary\">" + self.options.messages.save +
+									 "</button></div></div></div>");
+	 	 	 self._$addRecordDiv.find("#AddRecordDialogSaveButton").click(function (event) {
+	 	 	 	 self._onSaveClickedOnCreateForm();
+	 	 	 });
 
-        _onSaveClickedOnCreateForm: function () {
-            var self = this;
+	 	 	 self._formatModalWindow(self._$addRecordDiv);
 
-            var $saveButton = self._$addRecordDiv.parent().find('#AddRecordDialogSaveButton');
-            var $addRecordForm = self._$addRecordDiv.find('form');
+	 	 	 self._$addRecordDiv.on("hidden.bs.modal", function (event) {
+	 	 	 	 var $addRecordForm = self._$addRecordDiv.find("form").first();
+	 	 	 	 var $saveButton = self._$addRecordDiv.find("#AddRecordDialogSaveButton").first();
+	 	 	 	 self._trigger("formClosed", null, { form: $addRecordForm, formType: "create" });
+	 	 	 	 self._setEnabledOfDialogButton($saveButton, true, self.options.messages.save);
+	 	 	 	 $addRecordForm.remove();
+	 	 	 });
 
-            if (self._trigger("formSubmitting", null, { form: $addRecordForm, formType: 'create' }) != false) {
-                self._setEnabledOfDialogButton($saveButton, false, self.options.messages.saving);
-                self._saveAddRecordForm($addRecordForm, $saveButton);
-            }
-        },
+	 	 	 if (self.options.addRecordButton) {
+	 	 	 	 //If user supplied a button, bind the click event to show dialog form
+	 	 	 	 self.options.addRecordButton.click(function (e) {
+	 	 	 	 	 e.preventDefault();
+	 	 	 	 	 self._showAddRecordForm();
+	 	 	 	 });
+	 	 	 } else {
+	 	 	 	 //If user did not supplied a button, create a 'add record button' toolbar item.
+	 	 	 	 self._addToolBarItem({
+	 	 	 	 	 icon: "glyphicon-plus",
+	 	 	 	 	 cssClass: 'btn-default',
+	 	 	 	 	 text: self.options.messages.addNewRecord,
+	 	 	 	 	 click: function () {
+	 	 	 	 	 	 self._showAddRecordForm();
+	 	 	 	 	 }
+	 	 	 	 });
+	 	 	 }
+	 	 },
 
-        /************************************************************************
-        * PUBLIC METHODS                                                        *
-        *************************************************************************/
+	 	 _onSaveClickedOnCreateForm: function () {
+	 	 	 var self = this;
 
-        /* Shows add new record dialog form.
-        *************************************************************************/
-        showCreateForm: function () {
-            this._showAddRecordForm();
-        },
+	 	 	 var $saveButton = self._$addRecordDiv.parent().find('#AddRecordDialogSaveButton');
+	 	 	 var $addRecordForm = self._$addRecordDiv.find('form');
 
-        /* Adds a new record to the table (optionally to the server also)
-        *************************************************************************/
-        addRecord: function (options) {
-            var self = this;
-            options = $.extend({
-                clientOnly: false,
-                animationsEnabled: self.options.animationsEnabled,
-                success: function () { },
-                error: function () { }
-            }, options);
+	 	 	 if (self._trigger("formSubmitting", null, { form: $addRecordForm, formType: 'create' }) != false) {
+	 	 	 	 self._setEnabledOfDialogButton($saveButton, false, self.options.messages.saving);
+	 	 	 	 self._saveAddRecordForm($addRecordForm, $saveButton);
+	 	 	 }
+	 	 },
 
-            if (!options.record) {
-                self._logWarn('options parameter in addRecord method must contain a record property.');
-                return;
-            }
+	 	 /************************************************************************
+		 * PUBLIC METHODS                                                        *
+		 *************************************************************************/
 
-            if (options.clientOnly) {
-                self._addRow(
-                    self._createRowFromRecord(options.record), {
-                        isNewRow: true,
-                        animationsEnabled: options.animationsEnabled
-                    });
+	 	 /* Shows add new record dialog form.
+		 *************************************************************************/
+	 	 showCreateForm: function () {
+	 	 	 this._showAddRecordForm();
+	 	 },
 
-                options.success();
-                return;
-            }
+	 	 /* Adds a new record to the table (optionally to the server also)
+		 *************************************************************************/
+	 	 addRecord: function (options) {
+	 	 	 var self = this;
+	 	 	 options = $.extend({
+	 	 	 	 clientOnly: false,
+	 	 	 	 animationsEnabled: self.options.animationsEnabled,
+	 	 	 	 success: function () { },
+	 	 	 	 error: function () { }
+	 	 	 }, options);
 
-            var completeAddRecord = function (data) {
-                if (data.Result != 'OK') {
-                    self._showError(data.Message);
-                    options.error(data);
-                    return;
-                }
+	 	 	 if (!options.record) {
+	 	 	 	 self._logWarn('options parameter in addRecord method must contain a record property.');
+	 	 	 	 return;
+	 	 	 }
 
-                if (!data.Record) {
-                    self._logError('Server must return the created Record object.');
-                    options.error(data);
-                    return;
-                }
+	 	 	 if (options.clientOnly) {
+	 	 	 	 self._addRow(
+						 self._createRowFromRecord(options.record), {
+						 	 isNewRow: true,
+						 	 animationsEnabled: options.animationsEnabled
+						 });
 
-                self._onRecordAdded(data);
-                self._addRow(
-                    self._createRowFromRecord(data.Record), {
-                        isNewRow: true,
-                        animationsEnabled: options.animationsEnabled
-                    });
+	 	 	 	 options.success();
+	 	 	 	 return;
+	 	 	 }
 
-                options.success(data);
-            };
+	 	 	 var completeAddRecord = function (data) {
+	 	 	 	 if (data.Result != 'OK') {
+	 	 	 	 	 self._showError(data.Message);
+	 	 	 	 	 options.error(data);
+	 	 	 	 	 return;
+	 	 	 	 }
 
-            //createAction may be a function, check if it is
-            if (!options.url && $.isFunction(self.options.actions.createAction)) {
+	 	 	 	 if (!data.Record) {
+	 	 	 	 	 self._logError('Server must return the created Record object.');
+	 	 	 	 	 options.error(data);
+	 	 	 	 	 return;
+	 	 	 	 }
 
-                //Execute the function
-                var funcResult = self.options.actions.createAction($.param(options.record));
+	 	 	 	 self._onRecordAdded(data);
+	 	 	 	 self._addRow(
+						 self._createRowFromRecord(data.Record), {
+						 	 isNewRow: true,
+						 	 animationsEnabled: options.animationsEnabled
+						 });
 
-                //Check if result is a jQuery Deferred object
-                if (self._isDeferredObject(funcResult)) {
-                    //Wait promise
-                    funcResult.done(function (data) {
-                        completeAddRecord(data);
-                    }).fail(function () {
-                        self._showError(self.options.messages.serverCommunicationError);
-                        options.error();
-                    });
-                } else { //assume it returned the creation result
-                    completeAddRecord(funcResult);
-                }
+	 	 	 	 options.success(data);
+	 	 	 };
 
-            } else { //Assume it's a URL string
+	 	 	 //createAction may be a function, check if it is
+	 	 	 if (!options.url && $.isFunction(self.options.actions.createAction)) {
 
-                //Make an Ajax call to create record
-                self._submitFormUsingAjax(
-                    options.url || self.options.actions.createAction,
-                    $.param(options.record),
-                    function (data) {
-                        completeAddRecord(data);
-                    },
-                    function () {
-                        self._showError(self.options.messages.serverCommunicationError);
-                        options.error();
-                    });
+	 	 	 	 //Execute the function
+	 	 	 	 var funcResult = self.options.actions.createAction($.param(options.record));
 
-            }
-        },
+	 	 	 	 //Check if result is a jQuery Deferred object
+	 	 	 	 if (self._isDeferredObject(funcResult)) {
+	 	 	 	 	 //Wait promise
+	 	 	 	 	 funcResult.done(function (data) {
+	 	 	 	 	 	 completeAddRecord(data);
+	 	 	 	 	 }).fail(function () {
+	 	 	 	 	 	 self._showError(self.options.messages.serverCommunicationError);
+	 	 	 	 	 	 options.error();
+	 	 	 	 	 });
+	 	 	 	 } else { //assume it returned the creation result
+	 	 	 	 	 completeAddRecord(funcResult);
+	 	 	 	 }
 
-        /************************************************************************
-        * PRIVATE METHODS                                                       *
-        *************************************************************************/
+	 	 	 } else { //Assume it's a URL string
 
-        /* Shows add new record dialog form.
-        *************************************************************************/
-        _showAddRecordForm: function () {
-            var self = this;
+	 	 	 	 //Make an Ajax call to create record
+	 	 	 	 self._submitFormUsingAjax(
+						 options.url || self.options.actions.createAction,
+						 $.param(options.record),
+						 function (data) {
+						 	 completeAddRecord(data);
+						 },
+						 function () {
+						 	 self._showError(self.options.messages.serverCommunicationError);
+						 	 options.error();
+						 });
 
-            //Create add new record form
-            var $addRecordForm = $('<form id="jtable-create-form" class="jtable-dialog-form jtable-create-form"></form>');
+	 	 	 }
+	 	 },
 
-            //Create input elements
-            for (var i = 0; i < self._fieldList.length; i++) {
+	 	 /************************************************************************
+		 * PRIVATE METHODS                                                       *
+		 *************************************************************************/
 
-                var fieldName = self._fieldList[i];
-                var field = self.options.fields[fieldName];
+	 	 /* Shows add new record dialog form.
+		 *************************************************************************/
+	 	 _showAddRecordForm: function () {
+	 	 	 var self = this;
 
-                //Do not create input for fields that is key and not specially marked as creatable
-                if (field.key == true && field.create != true) {
-                    continue;
-                }
+	 	 	 //Create add new record form
+	 	 	 var $addRecordForm = $("<form></form>"),
+					 $rowRecordsContainers;
 
-                //Do not create input for fields that are not creatable
-                if (field.create == false) {
-                    continue;
-                }
+	 	 	 	 $rowRecordsContainers = $("<div class=\"row\" ></div>").appendTo($addRecordForm);
 
-                if (field.type == 'hidden') {
-                    $addRecordForm.append(self._createInputForHidden(fieldName, field.defaultValue));
-                    continue;
-                }
+	 	 	 //Create input elements
+	 	 	 for (var i = 0; i < self._fieldList.length; i++) {
 
-                //Create a container div for this input field and add to form
-                var $fieldContainer = $('<div />')
-                    .addClass('jtable-input-field-container')
-                    .appendTo($addRecordForm);
+	 	 	 	 var fieldName = self._fieldList[i];
+	 	 	 	 var field = self.options.fields[fieldName];
 
-                //Create a label for input
-                $fieldContainer.append(self._createInputLabelForRecordField(fieldName));
+	 	 	 	 //Do not create input for fields that is key and not specially marked as creatable
+	 	 	 	 if (field.key == true && field.create != true) {
+	 	 	 	 	 continue;
+	 	 	 	 }
 
-                //Create input element
-                $fieldContainer.append(
-                    self._createInputForRecordField({
-                        fieldName: fieldName,
-                        formType: 'create',
-                        form: $addRecordForm
-                    }));
-            }
+	 	 	 	 //Do not create input for fields that are not creatable
+	 	 	 	 if (field.create == false) {
+	 	 	 	 	 continue;
+	 	 	 	 }
 
-            self._makeCascadeDropDowns($addRecordForm, undefined, 'create');
+	 	 	 	 if (field.type == 'hidden') {
+	 	 	 	 	 $addRecordForm.append(self._createInputForHidden(fieldName, field.defaultValue));
+	 	 	 	 	 continue;
+	 	 	 	 }
 
-            $addRecordForm.submit(function () {
-                self._onSaveClickedOnCreateForm();
-                return false;
-            });
+	 	 	 	 if (field.divClass === undefined) {
+	 	 	 	 	 field.divClass = "col-md-12";
+	 	 	 	 }
 
-            //Open the form
-            self._$addRecordDiv.append($addRecordForm).dialog('open');
-            self._trigger("formCreated", null, { form: $addRecordForm, formType: 'create' });
-        },
+	 	 	 	 //Create a container div for this input field and add to form
+	 	 	 	 var $fieldContainer = $("<div />").addClass("form-group")
+                    .addClass(field.divClass)
+                    .appendTo($rowRecordsContainers);
 
-        /* Saves new added record to the server and updates table.
-        *************************************************************************/
-        _saveAddRecordForm: function ($addRecordForm, $saveButton) {
-            var self = this;
+	 	 	 	 //Create a label for input
+	 	 	 	 $fieldContainer.append(self._createInputLabelForRecordField(fieldName));
+	 	 	 	 $fieldContainer.append(field.nextItem);
 
-            var completeAddRecord = function (data) {
-                if (data.Result != 'OK') {
-                    self._showError(data.Message);
-                    self._setEnabledOfDialogButton($saveButton, true, self.options.messages.save);
-                    return;
-                }
+	 	 	 	 //Create input element
+	 	 	 	 $fieldContainer.append(
+						 self._createInputForRecordField({
+						 	 fieldName: fieldName,
+						 	 formType: 'create',
+						 	 form: $addRecordForm
+						 }));
+	 	 	 }
 
-                if (!data.Record) {
-                    self._logError('Server must return the created Record object.');
-                    self._setEnabledOfDialogButton($saveButton, true, self.options.messages.save);
-                    return;
-                }
+	 	 	 self._makeCascadeDropDowns($addRecordForm, undefined, 'create');
 
-                self._onRecordAdded(data);
-                self._addRow(
-                    self._createRowFromRecord(data.Record), {
-                        isNewRow: true
-                    });
-                self._$addRecordDiv.dialog("close");
-            };
+	 	 	 $addRecordForm.submit(function () {
+	 	 	 	 self._onSaveClickedOnCreateForm();
+	 	 	 	 return false;
+	 	 	 });
 
-            $addRecordForm.data('submitting', true); //TODO: Why it's used, can remove? Check it.
+	 	 	 //Open the form
+	 	 	 self._$addRecordDiv.find(".modal-body").html($addRecordForm);
+	 	 	 self._$addRecordDiv.modal("show");
+	 	 	 self._trigger("formCreated", null, { form: $addRecordForm, formType: 'create' });
+	 	 },
 
-            //createAction may be a function, check if it is
-            if ($.isFunction(self.options.actions.createAction)) {
+	 	 /* Saves new added record to the server and updates table.
+		 *************************************************************************/
+	 	 _saveAddRecordForm: function ($addRecordForm, $saveButton) {
+	 	 	 var self = this;
 
-                //Execute the function
-                var funcResult = self.options.actions.createAction($addRecordForm.serialize());
+	 	 	 var completeAddRecord = function (data) {
+	 	 	 	 if (data.Result != 'OK') {
+	 	 	 	 	 self._showError(data.Message);
+	 	 	 	 	 self._setEnabledOfDialogButton($saveButton, true, self.options.messages.save);
+	 	 	 	 	 return;
+	 	 	 	 }
 
-                //Check if result is a jQuery Deferred object
-                if (self._isDeferredObject(funcResult)) {
-                    //Wait promise
-                    funcResult.done(function (data) {
-                        completeAddRecord(data);
-                    }).fail(function () {
-                        self._showError(self.options.messages.serverCommunicationError);
-                        self._setEnabledOfDialogButton($saveButton, true, self.options.messages.save);
-                    });
-                } else { //assume it returned the creation result
-                    completeAddRecord(funcResult);
-                }
+	 	 	 	 if (!data.Record) {
+	 	 	 	 	 self._logError('Server must return the created Record object.');
+	 	 	 	 	 self._setEnabledOfDialogButton($saveButton, true, self.options.messages.save);
+	 	 	 	 	 return;
+	 	 	 	 }
 
-            } else { //Assume it's a URL string
+	 	 	 	 self._onRecordAdded(data);
+	 	 	 	 self._addRow(
+						 self._createRowFromRecord(data.Record), {
+						 	 isNewRow: true
+						 });
+	 	 	 	 self._$addRecordDiv.modal("hide");
+	 	 	 };
 
-                //Make an Ajax call to create record
-                self._submitFormUsingAjax(
-                    self.options.actions.createAction,
-                    $addRecordForm.serialize(),
-                    function (data) {
-                        completeAddRecord(data);
-                    },
-                    function () {
-                        self._showError(self.options.messages.serverCommunicationError);
-                        self._setEnabledOfDialogButton($saveButton, true, self.options.messages.save);
-                    });
-            }
-        },
+	 	 	 $addRecordForm.data('submitting', true); //TODO: Why it's used, can remove? Check it.
 
-        _onRecordAdded: function (data) {
-            this._trigger("recordAdded", null, { record: data.Record, serverResponse: data });
-        }
+	 	 	 //createAction may be a function, check if it is
+	 	 	 if ($.isFunction(self.options.actions.createAction)) {
 
-    });
+	 	 	 	 //Execute the function
+	 	 	 	 var funcResult = self.options.actions.createAction($addRecordForm.serialize());
+
+	 	 	 	 //Check if result is a jQuery Deferred object
+	 	 	 	 if (self._isDeferredObject(funcResult)) {
+	 	 	 	 	 //Wait promise
+	 	 	 	 	 funcResult.done(function (data) {
+	 	 	 	 	 	 completeAddRecord(data);
+	 	 	 	 	 }).fail(function () {
+	 	 	 	 	 	 self._showError(self.options.messages.serverCommunicationError);
+	 	 	 	 	 	 self._setEnabledOfDialogButton($saveButton, true, self.options.messages.save);
+	 	 	 	 	 });
+	 	 	 	 } else { //assume it returned the creation result
+	 	 	 	 	 completeAddRecord(funcResult);
+	 	 	 	 }
+
+	 	 	 } else { //Assume it's a URL string
+
+	 	 	 	 //Make an Ajax call to create record
+	 	 	 	 self._submitFormUsingAjax(
+						 self.options.actions.createAction,
+						 $addRecordForm.serialize(),
+						 function (data) {
+						 	 completeAddRecord(data);
+						 },
+						 function () {
+						 	 self._showError(self.options.messages.serverCommunicationError);
+						 	 self._setEnabledOfDialogButton($saveButton, true, self.options.messages.save);
+						 });
+	 	 	 }
+	 	 },
+
+	 	 _onRecordAdded: function (data) {
+	 	 	 this._trigger("recordAdded", null, { record: data.Record, serverResponse: data });
+	 	 }
+
+	 });
 
 })(jQuery);
