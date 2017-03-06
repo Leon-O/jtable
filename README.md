@@ -27,6 +27,11 @@ jTable is a jQuery plugin used to create AJAX based CRUD tables without coding H
 
 Notes
 ======
+It is necessary to have reference to:
+* jQuery 3.1.1
+* Bootstrap 3.3.7
+* moment.js 2.17.1
+* Daterangepicker 2.1.17
 
 lib folder contains files necessary to use jTable.
 
