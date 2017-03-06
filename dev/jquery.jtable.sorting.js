@@ -106,9 +106,9 @@
 		 *************************************************************************/
 	 	 _makeColumnSortable: function ($columnHeader, fieldName) {
 	 	 	 var self = this;
+	 	 	 var $colspan = $("<span class=\"pull-right\" aria-hidden=\"true\"></span>").addClass("glyphicon glyphicon-sort");
 
-	 	 	 $columnHeader
-					 .addClass('jtable-column-header-sortable')
+	 	 	 $columnHeader.append($colspan)
 					 .click(function (e) {
 					 	 e.preventDefault();
 
@@ -119,14 +119,21 @@
 					 	 self._sortTableByColumn($columnHeader);
 					 });
 
+	 	 	 $columnHeader.css({ "cursor": "pointer" });
+
 	 	 	 //Set default sorting
 	 	 	 $.each(this._lastSorting, function (sortIndex, sortField) {
 	 	 	 	 if (sortField.fieldName == fieldName) {
+	 	 	 	 	 $columnHeader.children().removeClass("glyphicon-sort");
+
 	 	 	 	 	 if (sortField.sortOrder == 'DESC') {
-	 	 	 	 	 	 $columnHeader.addClass('jtable-column-header-sorted-desc');
+	 	 	 	 	 	 $columnHeader.children().addClass('glyphicon-sort-by-attributes-alt');
 	 	 	 	 	 } else {
-	 	 	 	 	 	 $columnHeader.addClass('jtable-column-header-sorted-asc');
+	 	 	 	 	 	 $columnHeader.children().addClass('glyphicon-sort-by-attributes');
 	 	 	 	 	 }
+	 	 	 	 }
+	 	 	 	 else {
+	 	 	 	 	 $columnHeader.children().addClass("glyphicon-sort");
 	 	 	 	 }
 	 	 	 });
 	 	 },
@@ -136,7 +143,8 @@
 	 	 _sortTableByColumn: function ($columnHeader) {
 	 	 	 //Remove sorting styles from all columns except this one
 	 	 	 if (this._lastSorting.length == 0) {
-	 	 	 	 $columnHeader.siblings().removeClass('jtable-column-header-sorted-asc jtable-column-header-sorted-desc');
+	 	 	 	 $columnHeader.siblings().children().addClass("glyphicon-sort");
+	 	 	 	 $columnHeader.siblings().children().removeClass('glyphicon-sort-by-attributes glyphicon-sort-by-attributes-alt');
 	 	 	 }
 
 	 	 	 //If current sorting list includes this column, remove it from the list
@@ -147,14 +155,14 @@
 	 	 	 }
 
 	 	 	 //Sort ASC or DESC according to current sorting state
-	 	 	 if ($columnHeader.hasClass('jtable-column-header-sorted-asc')) {
-	 	 	 	 $columnHeader.removeClass('jtable-column-header-sorted-asc').addClass('jtable-column-header-sorted-desc');
+	 	 	 if ($columnHeader.children().hasClass('glyphicon-sort-by-attributes')) {
+	 	 	 	 $columnHeader.children().removeClass('glyphicon-sort-by-attributes').addClass('glyphicon-sort-by-attributes-alt');
 	 	 	 	 this._lastSorting.push({
 	 	 	 	 	 'fieldName': $columnHeader.data('fieldName'),
 	 	 	 	 	 sortOrder: 'DESC'
 	 	 	 	 });
 	 	 	 } else {
-	 	 	 	 $columnHeader.removeClass('jtable-column-header-sorted-desc').addClass('jtable-column-header-sorted-asc');
+	 	 	 	 $columnHeader.children().removeClass('glyphicon-sort-by-attributes-alt').addClass('glyphicon-sort-by-attributes');
 	 	 	 	 this._lastSorting.push({
 	 	 	 	 	 'fieldName': $columnHeader.data('fieldName'),
 	 	 	 	 	 sortOrder: 'ASC'

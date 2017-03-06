@@ -23,7 +23,7 @@
 	 	 	 actions: {},
 	 	 	 fields: {},
 	 	 	 animationsEnabled: true,
-	 	 	 defaultDateFormat: "YY-MM-DD",
+	 	 	 defaultDateFormat: "YYYY-MM-DD",
 	 	 	 dialogShowEffect: "fade",
 	 	 	 dialogHideEffect: "fade",
 	 	 	 showCloseButton: false,
@@ -190,7 +190,6 @@
 	 	 _createMainContainer: function () {
 	 	 	 this._$mainContainer = $("<div />")
 			 .addClass("panel")
-			 .addClass("table-responsive")
 			 .addClass(this.options.toolbar.panelClass)
 					 .appendTo(this.element);
 	 	 },
@@ -230,10 +229,14 @@
 	 	 /* Creates the table.
 		 *************************************************************************/
 	 	 _createTable: function () {
+	 	 	 var tableContainer = $("<div />")
+			 .addClass("table-responsive")
+			 .appendTo(this._$mainContainer);
+
 	 	 	 this._$table = $("<table></table>")
 					 .addClass("table")
 					 .addClass(this.options.tableClass)
-					 .appendTo(this._$mainContainer);
+					 .appendTo(tableContainer);
 
 	 	 	 if (this.options.tableId) {
 	 	 	 	 this._$table.attr("id", this.options.tableId);
@@ -281,14 +284,13 @@
 		 *  Returns th jQuery object.
 		 *************************************************************************/
 	 	 _createHeaderCellForField: function (fieldName, field) {
-	 	 	 field.width = field.width || "10%"; //default column width: 10%.
+	 	 	 field.width = field.width || "50px"; //default column width: 10%.
 
 	 	 	 var $th = $("<th></th>")
 			 .html(field.title)
 					 .addClass(field.listClass)
 					 .css("width", field.width)
 					 .data("fieldName", fieldName);
-
 
 	 	 	 return $th;
 	 	 },
@@ -297,7 +299,7 @@
 		 *************************************************************************/
 	 	 _createEmptyCommandHeader: function () {
 	 	 	 var $th = $("<th></th>")
-					 .css("width", "1%");
+					 .css("width", "3px");
 	 	 	 return $th;
 	 	 },
 
@@ -447,7 +449,6 @@
 	 	 	 	 self._addRecordsToTable(data.Records);
 
 	 	 	 	 self._onRecordsLoaded(data);
-
 
 	 	 	 	 //Call complete callback
 	 	 	 	 if (completeCallback) {
@@ -753,8 +754,7 @@
 	 	 	 }
 
 	 	 	 var displayFormat = field.displayFormat || this.options.defaultDateFormat;
-	 	 	 var date = this._parseDate(fieldValue);
-	 	 	 return $.datepicker.formatDate(displayFormat, date);
+	 	 	 return moment(fieldValue).format(displayFormat);
 	 	 },
 
 	 	 /* Gets options for a field according to user preferences.
@@ -1088,14 +1088,9 @@
 	 	 	 var self = this;  //
 
 	 	 	 //Show a transparent overlay to prevent clicking to the table
-	 	 	 self._$busyDiv
-					 .width(self._$mainContainer.width())
-					 .height(self._$mainContainer.height())
-					 .addClass("jtable-busy-panel-background-invisible")
-					 .show();
+	 	 	 self._$busyDiv.show();
 
 	 	 	 var makeVisible = function () {
-	 	 	 	 self._$busyDiv.removeClass("jtable-busy-panel-background-invisible");
 	 	 	 	 self._$busyMessageDiv.html(message).show();
 	 	 	 };
 

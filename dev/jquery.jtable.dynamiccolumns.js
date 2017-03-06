@@ -50,7 +50,6 @@
 	 	 	 if (this.options.saveUserPreferences) {
 	 	 	 	 this._loadColumnSettings();
 	 	 	 }
-
 	 	 	 this._normalizeColumnWidths();
 	 	 },
 
@@ -157,6 +156,50 @@
 	 	 	 field.visibility = visibility;
 	 	 },
 
+	 	 /* Normalizes column widths as percent for current view.
+		 *************************************************************************/
+	 	 _normalizeColumnWidths: function () {
+	 	 	 return;
+
+	 	 	 //Set command column width
+	 	 	 var commandColumnHeaders = this._$table
+					 .find(" > thead th")
+					 .data("width-in-percent", 1)
+					 .css("width", "1%");
+
+	 	 	 //Find data columns
+	 	 	 var headerCells = this._$table.find(" > thead th");
+
+	 	 	 //Calculate total width of data columns
+	 	 	 var totalWidthInPixel = 0;
+	 	 	 headerCells.each(function () {
+	 	 	 	 var $cell = $(this);
+	 	 	 	 if ($cell.is(":visible")) {
+	 	 	 	 	 totalWidthInPixel += $cell.outerWidth();
+	 	 	 	 }
+	 	 	 });
+
+	 	 	 //Calculate width of each column
+	 	 	 var columnWidhts = {};
+	 	 	 var availableWidthInPercent = 100.0 - commandColumnHeaders.length;
+	 	 	 headerCells.each(function () {
+	 	 	 	 var $cell = $(this);
+	 	 	 	 if ($cell.is(":visible")) {
+	 	 	 	 	 var fieldName = $cell.data("fieldName");
+	 	 	 	 	 var widthInPercent = $cell.outerWidth() * availableWidthInPercent / totalWidthInPixel;
+	 	 	 	 	 columnWidhts[fieldName] = widthInPercent;
+	 	 	 	 }
+	 	 	 });
+
+	 	 	 //Set width of each column
+	 	 	 headerCells.each(function () {
+	 	 	 	 var $cell = $(this);
+	 	 	 	 if ($cell.is(":visible")) {
+	 	 	 	 	 var fieldName = $cell.data("fieldName");
+	 	 	 	 	 $cell.data("width-in-percent", columnWidhts[fieldName]).css("width", columnWidhts[fieldName] + "%");
+	 	 	 	 }
+	 	 	 });
+	 	 },
 	 	 /* Prepares dialog to change settings.
 		 *************************************************************************/
 	 	 _createColumnSelection: function () {
@@ -357,50 +400,6 @@
 					 	 $(document).bind('mousemove', resizeonmousemove);
 					 	 $(document).bind('mouseup', resizeonmouseup);
 					 });
-	 	 },
-
-	 	 /* Normalizes column widths as percent for current view.
-		 *************************************************************************/
-	 	 _normalizeColumnWidths: function () {
-
-	 	 	 //Set command column width
-	 	 	 var commandColumnHeaders = this._$table
-					 .find('>thead th.jtable-command-column-header')
-					 .data('width-in-percent', 1)
-					 .css('width', '1%');
-
-	 	 	 //Find data columns
-	 	 	 var headerCells = this._$table.find('>thead th.jtable-column-header');
-
-	 	 	 //Calculate total width of data columns
-	 	 	 var totalWidthInPixel = 0;
-	 	 	 headerCells.each(function () {
-	 	 	 	 var $cell = $(this);
-	 	 	 	 if ($cell.is(':visible')) {
-	 	 	 	 	 totalWidthInPixel += $cell.outerWidth();
-	 	 	 	 }
-	 	 	 });
-
-	 	 	 //Calculate width of each column
-	 	 	 var columnWidhts = {};
-	 	 	 var availableWidthInPercent = 100.0 - commandColumnHeaders.length;
-	 	 	 headerCells.each(function () {
-	 	 	 	 var $cell = $(this);
-	 	 	 	 if ($cell.is(':visible')) {
-	 	 	 	 	 var fieldName = $cell.data('fieldName');
-	 	 	 	 	 var widthInPercent = $cell.outerWidth() * availableWidthInPercent / totalWidthInPixel;
-	 	 	 	 	 columnWidhts[fieldName] = widthInPercent;
-	 	 	 	 }
-	 	 	 });
-
-	 	 	 //Set width of each column
-	 	 	 headerCells.each(function () {
-	 	 	 	 var $cell = $(this);
-	 	 	 	 if ($cell.is(':visible')) {
-	 	 	 	 	 var fieldName = $cell.data('fieldName');
-	 	 	 	 	 $cell.data('width-in-percent', columnWidhts[fieldName]).css('width', columnWidhts[fieldName] + '%');
-	 	 	 	 }
-	 	 	 });
 	 	 },
 
 	 	 /* Saves field setting to cookie.

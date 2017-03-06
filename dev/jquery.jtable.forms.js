@@ -111,18 +111,19 @@
 		 *************************************************************************/
 	 	 _createDateInputForField: function (field, fieldName, value) {
 	 	 	 var $input = $("<input class=\"form-control " + field.inputClass + "\" id=\"Edit-" + fieldName + "\" type=\"text\" name=\"" + fieldName + "\"></input>");
+
 	 	 	 if (value !== undefined) {
 	 	 	 	 $input.val(value);
 	 	 	 }
 
 	 	 	 var displayFormat = field.displayFormat || this.options.defaultDateFormat;
-	 	 	 $input.daterangepicker({ locale: { format: displayFormat }, singleDatePicker: true });
-	 	 	 var addon = $("<div />").addClass("input-group-addon").append("<i class=\"glyphicon glyphicon-calendar\"></i>");
+	 	 	 $input.daterangepicker({ locale: { format: displayFormat }, singleDatePicker: true,showDropdowns: true });
+	 	 	 var addon = $("<div />").addClass("input-group-addon").append("<span class=\"glyphicon glyphicon-calendar\"></span>");
 
 	 	 	 return $("<div />")
 					 .addClass("input-group")
-					 .append(addon)
-					 .append($input);
+					 .append($input)
+					 .append(addon);
 	 	 },
 	 	 /* Creates a time input for a field.
  *************************************************************************/
@@ -133,7 +134,7 @@
 	 	 	 }
 
 	 	 	 $input.timepicker();
-	 	 	 var addon = $("<div />").addClass("input-group-addon").append("<i class=\"glyphicon glyphicon-time\"></i>");
+	 	 	 var addon = $("<div />").addClass("input-group-addon").append("<span class=\"glyphicon glyphicon-time\"></span>");
 
 	 	 	 return $("<div />")
 					 .addClass("input-group")
@@ -146,7 +147,7 @@
 	 	 	 var $input = $("<input class=\"form-control " + field.inputClass + "\" id=\"Edit-" + fieldName + "\" type=\"text\" name=\"" + fieldName + "\"></input>");
 
 	 	 	 var displayFormat = field.displayFormat || this.options.defaultDateFormat;
-	 	 	 $input.daterangepicker({
+	 	 	 var daterangeoptions = field.daterangeoptions || {
 	 	 	 	 locale: {
 	 	 	 	 	 cancelLabel: "Cancel",
 	 	 	 	 	 applyLabel: "Apply",
@@ -156,7 +157,10 @@
 	 	 	 	 timePicker: true,
 	 	 	 	 timePickerIncrement: 10,
 	 	 	 	 showDropdowns: true
-	 	 	 });
+	 	 	 };
+
+	 	 	 $input.daterangepicker(daterangeoptions);
+
 	 	 	 if (value !== undefined) {
 	 	 	 	 $input.val(moment(value).format(displayFormat));
 	 	 	 } else {
@@ -167,11 +171,12 @@
 	 	 	 	 $input.val("");
 	 	 	 });
 
-	 	 	 var addon = $("<div />").addClass("input-group-addon").append("<i class=\"glyphicon glyphicon-calendar\"></i>");
+	 	 	 var addon = $("<div />").addClass("input-group-addon").append("<span class=\"glyphicon glyphicon-calendar\"></span>");
+
 	 	 	 return $("<div />")
 					 .addClass("input-group")
-					 .append(addon)
-					 .append($input);
+					 .append($input)
+					 .append(addon);
 	 	 },
 	 	 /* Creates a daterange input for a field.
          *************************************************************************/
@@ -182,13 +187,22 @@
 	 	 	 }
 
 	 	 	 var displayFormat = field.displayFormat || this.options.defaultDateFormat;
-	 	 	 $input.daterangepicker(field.daterangeoptions);
+	 	 	 var daterangeoptions = field.daterangeoptions || {
+	 	 	 	 locale: {
+	 	 	 	 	 cancelLabel: "Cancel",
+	 	 	 	 	 applyLabel: "Apply",
+	 	 	 	 	 format: displayFormat
+	 	 	 	 },
+	 	 	 	 showDropdowns: true
+	 	 	 };
+
+	 	 	 $input.daterangepicker(daterangeoptions);
 	 	 	 var addon = $("<div />").addClass("input-group-addon").append("<i class=\"glyphicon glyphicon-calendar\"></i>");
 
 	 	 	 return $("<div />")
 					 .addClass("input-group")
-					 .append(addon)
-					 .append($input);
+					 .append($input)
+					 .append(addon);
 	 	 },
 	 	 /* Creates a textarea element for a field.
 		 *************************************************************************/
