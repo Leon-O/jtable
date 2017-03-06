@@ -27,8 +27,7 @@
 	 	 _createInputLabelForRecordField: function (fieldName) {
 	 	 	 var label = $("<label for=\"Edit-" + fieldName + "\" />");
 
-	 	 	 return label.addClass("jtable-input-label")
-                .html(this.options.fields[fieldName].inputTitle || this.options.fields[fieldName].title);
+	 	 	 return label.html(this.options.fields[fieldName].inputTitle || this.options.fields[fieldName].title);
 	 	 },
 
 	 	 /* Creates an input element according to field type.

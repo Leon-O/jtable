@@ -255,7 +255,10 @@
 	 	 	 var record = $tableRow.data('record');
 
 	 	 	 //Create edit form
-	 	 	 var $editForm = $('<form id="jtable-edit-form" class="jtable-dialog-form jtable-edit-form"></form>');
+	 	 	 var $editForm = $("<form></form>"),
+							 $rowRecordsContainers;
+
+	 	 	 $rowRecordsContainers = $("<div class=\"row\" ></div>").appendTo($editForm);
 
 	 	 	 //Create input fields
 	 	 	 for (var i = 0; i < self._fieldList.length; i++) {
@@ -286,11 +289,18 @@
 	 	 	 	 	 continue;
 	 	 	 	 }
 
-	 	 	 	 //Create a container div for this input field and add to form
-	 	 	 	 var $fieldContainer = $('<div class="jtable-input-field-container"></div>').appendTo($editForm);
+	 	 	 	 if (field.divClass === undefined) {
+	 	 	 	 	 field.divClass = "col-md-12";
+	 	 	 	 }
 
-	 	 	 	 //Create a label for input
+	 	 	 	 //Create a container div for this input field and add to form
+	 	 	 	 var $fieldContainer = $("<div />").addClass("form-group")
+                    .addClass(field.divClass)
+                    .appendTo($rowRecordsContainers);
+
+	 	 	 	 //Create a label for input 
 	 	 	 	 $fieldContainer.append(self._createInputLabelForRecordField(fieldName));
+	 	 	 	 $fieldContainer.append(field.nextItem);
 
 	 	 	 	 //Create input element with it's current value
 	 	 	 	 var currentValue = self._getValueForRecordField(record, fieldName);
