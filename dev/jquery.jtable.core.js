@@ -980,6 +980,9 @@
 	 	 	 	 $toolBarItem
 						 .addClass(item.cssClass);
 	 	 	 }
+			 else{
+				 $toolBarItem.addClass("btn-default");
+			 }
 
 	 	 	 //tooltip property
 	 	 	 if (item.tooltip) {
