@@ -106,7 +106,7 @@
 		 *************************************************************************/
 	 	 _makeColumnSortable: function ($columnHeader, fieldName) {
 	 	 	 var self = this;
-	 	 	 var $colspan = $("<span class=\"pull-right\" aria-hidden=\"true\"></span>").addClass("glyphicon glyphicon-sort");
+	 	 	 var $colspan = $("<span aria-hidden=\"true\" style=\"margin-right: 7px;\"></span>").addClass("glyphicon glyphicon-sort");
 
 	 	 	 $columnHeader.append($colspan)
 					 .click(function (e) {

@@ -38,9 +38,6 @@
 	 	 	 },
 
 	 	 	 toolbar: {
-	 	 	 	 hoverAnimation: true,
-	 	 	 	 hoverAnimationDuration: 60,
-	 	 	 	 hoverAnimationEasing: undefined,
 	 	 	 	 panelClass: "panel-default",
 	 	 	 	 items: []
 	 	 	 },
@@ -274,12 +271,6 @@
 	 	 	 }
 	 	 },
 
-	 	 _resizePanel: function () {
-	 	 	 if (this._$titleDiv != null && this._$titleDiv != undefined) {
-	 	 	 	 this._$titleDiv.css({width:this._$table.width()});
-	 	 	 }
-	 	 },
-
 	 	 /* Creates a header cell for given field.
 		 *  Returns th jQuery object.
 		 *************************************************************************/
@@ -454,7 +445,6 @@
 	 	 	 	 if (completeCallback) {
 	 	 	 	 	 completeCallback();
 	 	 	 	 }
-	 	 	 	 self._resizePanel();
 	 	 	 };
 
 	 	 	 self._showBusy(self.options.messages.loadingMessage, self.options.loadingAnimationDelay); //Disable table since it"s busy
@@ -1010,14 +1000,6 @@
 	 	 	 	 $toolBarItem.click(function () {
 	 	 	 	 	 item.click();
 	 	 	 	 });
-	 	 	 }
-
-	 	 	 //set hover animation parameters
-	 	 	 var hoverAnimationDuration = undefined;
-	 	 	 var hoverAnimationEasing = undefined;
-	 	 	 if (this.options.toolbar.hoverAnimation) {
-	 	 	 	 hoverAnimationDuration = this.options.toolbar.hoverAnimationDuration;
-	 	 	 	 hoverAnimationEasing = this.options.toolbar.hoverAnimationEasing;
 	 	 	 }
 
 	 	 	 return $toolBarItem;

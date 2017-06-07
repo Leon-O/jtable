@@ -13,8 +13,7 @@
 	 	 _addRowToTable: $.hik.jtable.prototype._addRowToTable,
 	 	 _addRow: $.hik.jtable.prototype._addRow,
 	 	 _removeRowsFromTable: $.hik.jtable.prototype._removeRowsFromTable,
-	 	 _onRecordsLoaded: $.hik.jtable.prototype._onRecordsLoaded,
-	 	 _resizePanel: $.hik.jtable.prototype._resizePanel
+	 	 _onRecordsLoaded: $.hik.jtable.prototype._onRecordsLoaded
 	 };
 
 	 //extension members
@@ -81,7 +80,7 @@
 	 	 _createBottomPanel: function () {
 	 	 	 this._$bottomPanel = $('<div />')
 					 .addClass('panel-footer')
-					 .insertAfter(this._$table);
+					 .appendTo(this._$mainContainer);
 
 	 	 	 $('<div />').addClass('jtable-left-area').addClass("pull-left").css("margin-top", "5px").appendTo(this._$bottomPanel);
 	 	 	 $('<div />').addClass('jtable-right-area').css({ "text-align": "right" }).appendTo(this._$bottomPanel);
@@ -140,14 +139,6 @@
 	 	 	 });
 	 	 },
 
-	 	 _resizePanel: function () {
-	 	 	 base._resizePanel.apply(this, arguments);
-
-	 	 	 if (this._$bottomPanel != null && this._$bottomPanel != undefined) {
-	 	 	 	 this._$bottomPanel.css({ width: this._$table.width() });
-	 	 	 }
-	 	 },
-
 	 	 /************************************************************************
 		 * OVERRIDED METHODS                                                     *
 		 *************************************************************************/
@@ -158,7 +149,6 @@
 	 	 	 this._currentPageNo = 1;
 
 	 	 	 base.load.apply(this, arguments);
-	 	 	 this._resizePanel();
 	 	 },
 
 	 	 /* Used to change options dynamically after initialization.
