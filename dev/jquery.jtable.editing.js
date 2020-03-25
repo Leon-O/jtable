@@ -89,6 +89,12 @@
 	 	 	 	 self._setEnabledOfDialogButton($saveButton, true, self.options.messages.save);
 	 	 	 	 $editForm.remove();
 	 	 	 });
+
+	 	 	 self._$editDiv.on('keyup',function(evt) {
+	 	 	 	 if (evt.keyCode == 27) {
+	 	 	 	 	self._$editDiv.modal('hide');
+	 	 	 	 }
+	 	 	 });
 	 	 },
 
 	 	 /* Saves editing form to server.

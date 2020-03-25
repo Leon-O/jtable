@@ -112,6 +112,12 @@
 	 	 	 	 	 $("body").data("fv_open_modals", $("body").data("fv_open_modals") - 1);
 	 	 	 	 }
 	 	 	 });
+
+	 	 	 self._$deleteRecordDiv.on('keyup',function(evt) {
+	 	 	 	 if (evt.keyCode == 27) {
+	 	 	 	 	self._$deleteRecordDiv.modal('hide');
+	 	 	 	 }
+	 	 	 });             
 	 	 },
 
 	 	 /************************************************************************

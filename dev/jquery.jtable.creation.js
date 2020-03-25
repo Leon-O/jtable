@@ -87,6 +87,12 @@
 	 	 	 	 $addRecordForm.remove();
 	 	 	 });
 
+	 	 	 self._$addRecordDiv.on('keyup',function(evt) {
+	 	 	 	 if (evt.keyCode == 27) {
+	 	 	 	 	self._$addRecordDiv.modal('hide');
+	 	 	 	 }
+	 	 	 });
+
 	 	 	 if (self.options.addRecordButton) {
 	 	 	 	 //If user supplied a button, bind the click event to show dialog form
 	 	 	 	 self.options.addRecordButton.click(function (e) {
