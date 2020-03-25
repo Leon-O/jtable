@@ -231,7 +231,7 @@
 	 	 _createNumberInputForField: function (field, fieldName, value) {
 	 	 	 var disabledField = field.inputClass.indexOf("disabled") > -1 ? "disabled=\"disabled\"" : "";
 
-	 	 	 var $input = $("<input " + disabledField + " class=\"" + field.inputClass + "\" id=\"Edit-" + fieldName + "\" type=\"number\" name=\"" + fieldName + '" placeholder="' + field.placeholder  + "\"></input>");
+	 	 	 var $input = $("<input " + disabledField + " class=\"form-control " + field.inputClass + "\" id=\"Edit-" + fieldName + "\" type=\"number\" name=\"" + fieldName + '" placeholder="' + field.placeholder  + "\"></input>");
 	 	 	 if (value !== undefined) {
 	 	 	 	 $input.val(value);
 	 	 	 }

@@ -112,6 +112,12 @@
 	 	 	 	 	 $("body").data("fv_open_modals", $("body").data("fv_open_modals") - 1);
 	 	 	 	 }
 	 	 	 });
+
+	 	 	 self._$deleteRecordDiv.on('keyup',function(evt) {
+	 	 	 	 if (evt.keyCode == 27) {
+	 	 	 	 	self._$deleteRecordDiv.modal('hide');
+	 	 	 	 }
+	 	 	 });             
 	 	 },
 
 	 	 /************************************************************************
@@ -257,7 +263,7 @@
 	 	 	 base._addCellsToRowUsingRecord.apply(this, arguments);
 
 	 	 	 var self = this;
-	 	 	 if (self.options.actions.deleteAction !== "undefined") {
+	 	 	 if (self.options.actions.deleteAction != undefined) {
 	 	 	 	 var $span = $('<span class="glyphicon glyphicon-trash"></span>');
 	 	 	 	 var $button = $('<button type="button" title="' + self.options.messages.deleteText + '"></button>')
 						 .addClass('btn btn-xs btn-danger')
@@ -268,6 +274,7 @@
 						 	 self._deleteButtonClickedForRow($row);
 						 });
 	 	 	 	 $('<td></td>')
+						 .addClass('jtable-command-column')
 						 .append($button)
 						 .appendTo($row);
 	 	 	 }
