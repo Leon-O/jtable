@@ -159,6 +159,7 @@
         /* Normalizes column widths as percent for current view.
       *************************************************************************/
         _normalizeColumnWidths: function () {
+            return;
 
             //Set command column width
             var commandColumnHeaders = this._$table
